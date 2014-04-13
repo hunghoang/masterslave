@@ -170,7 +170,7 @@ public class MasterSlaveTest {
 		app.registListener(mockApplicationListener);
 		app.start();
 		Assert.assertTrue("Application 1 must not be slave", app.isMaster());
-		Assert.assertTrue("ApplicationListener 1 record state of application is slave", mockApplicationListener.isMaster());
+		Assert.assertEquals("ApplicationListener 1 record state of application is slave", ApplicationState.MASTER, mockApplicationListener.getApplicationState());
 		
 		MockApplicationListener mockApplicationListener2 = new MockApplicationListener();
 		Application app2 = new Application();
@@ -178,16 +178,16 @@ public class MasterSlaveTest {
 		app2.start();
 		
 		Assert.assertFalse("Application 2 must not be master", app2.isMaster());
-		Assert.assertFalse("ApplicationListener 2 record state of application is master", mockApplicationListener2.isMaster());
+		Assert.assertEquals("ApplicationListener 2 record state of application is slave", ApplicationState.SLAVE, mockApplicationListener2.getApplicationState());
 		
 		app.stop();
 		Assert.assertFalse("Application 1 must not be master", app.isMaster());
-		Assert.assertFalse("ApplicationListener 1 record state of application is slave", mockApplicationListener.isMaster());
+		Assert.assertEquals("ApplicationListener 1 record state of application is master", ApplicationState.SLAVE, mockApplicationListener.getApplicationState());
 		
 		// Thread sleep to wait application 2 become master
 		Thread.sleep(5000);
 		Assert.assertTrue("Application 2 must not be slave", app2.isMaster());
-		Assert.assertTrue("ApplicationListener 2 record state of application is slave", mockApplicationListener2.isMaster());
+		Assert.assertEquals("ApplicationListener 2 record state of application is slave", ApplicationState.MASTER, mockApplicationListener2.getApplicationState());
 		
 		app2.stop();
 		app.start();
@@ -195,7 +195,7 @@ public class MasterSlaveTest {
 		Thread.sleep(5000);
 				
 		Assert.assertTrue("Application 1 must not be slave", app.isMaster());
-		Assert.assertTrue("ApplicationListener 1 record state of application is slave", mockApplicationListener.isMaster());
+		Assert.assertEquals("ApplicationListener 1 record state of application is slave", ApplicationState.MASTER, mockApplicationListener.getApplicationState());
 		
 		app.stop();
 		

@@ -89,7 +89,11 @@ public class Application implements Watcher {
 	private void changeState(boolean isMaster) {
 		this.isMaster = isMaster;
 		if (listener != null) {
-			listener.onChange(isMaster);
+			ApplicationState state = ApplicationState.SLAVE;
+			if (isMaster) {
+				state = ApplicationState.MASTER;
+			}
+			listener.onChange(state);
 		}
 	}
 	

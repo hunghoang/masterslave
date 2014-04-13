@@ -2,15 +2,15 @@ package org.zk;
 
 public class MockApplicationListener implements ApplicationListener {
 
-	private boolean isMaster;
+	private ApplicationState state;
 	
 	@Override
-	public void onChange(boolean isMaster) {
-		this.isMaster = isMaster;
+	public void onChange(ApplicationState state) {
+		this.state = state;
 	}
 
-	public boolean isMaster() {
-		return isMaster;
+	public ApplicationState getApplicationState() {
+		return state;
 	}
 
 }
