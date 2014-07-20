@@ -72,18 +72,26 @@ public class Application implements Watcher {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	private void tryToBeMaster() throws KeeperException, InterruptedException {
 		boolean canBeMaster = false;
-		if (zk.exists(masterNode, this) == null) {
+		if (isMasterNodeNotExisted()) {
 			try {
-				zk.create(masterNode, new byte[0], Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+				createMasterNode();
 				canBeMaster= true;
 			} catch (KeeperException.NodeExistsException e) {
 				log.warn("NodeExist, Application gonna be a slave");
 			}
 		}
 		changeState(canBeMaster);
+	}
+
+	private boolean isMasterNodeNotExisted() throws KeeperException, InterruptedException {
+		return zk.exists(masterNode, this) == null;
+	}
+	
+	private void createMasterNode() throws KeeperException, InterruptedException {
+		zk.create(masterNode, new byte[0], Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 	}
 
 	private void changeState(boolean isMaster) {
@@ -100,12 +108,12 @@ public class Application implements Watcher {
 	public boolean isMaster() {
 		return isMaster;
 	}
-
+	
 	public boolean isSlave() {
 		return !isMaster;
 	}
-
-
+	
+	
 	public boolean isActive() {
 		return isActive;
 	}
@@ -113,8 +121,8 @@ public class Application implements Watcher {
 	@Override
 	public void process(WatchedEvent we) {
 		// Type of watched event = NONE means state of connection has changed
-		if (EventType.None.equals(we.getType())) {
-			if (KeeperState.SyncConnected.equals(we.getState())) {
+		if (isConnectionChanged(we)) {
+			if (isConnected(we)) {
 				log.info("Connected to Zookeeper");
 				return;
 			}	
@@ -122,9 +130,9 @@ public class Application implements Watcher {
 			return;
 		} 
 		
-		if (EventType.NodeDeleted.equals(we.getType())) {
-			if (!isActive()) return;
+		if (isNodeDeleted(we)) {
 			try {
+				if (!isActive()) return;
 				log.debug("Node delete, retry to be master");
 				tryToBeMaster();
 			} catch (KeeperException e) {
@@ -135,4 +143,17 @@ public class Application implements Watcher {
 		}
 		
 	}
+
+	private boolean isConnectionChanged(WatchedEvent we) {
+		return EventType.None.equals(we.getType());
+	}
+	
+	private boolean isConnected(WatchedEvent we) {
+		return KeeperState.SyncConnected.equals(we.getState());
+	}
+	
+	private boolean isNodeDeleted(WatchedEvent we) {
+		return EventType.NodeDeleted.equals(we.getType());
+	}
+
 }
